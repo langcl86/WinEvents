@@ -1,4 +1,4 @@
-﻿Add-Type -AssemblyName System.Windows.Forms;
+Add-Type -AssemblyName System.Windows.Forms;
 
 function addCtrl ($type) { $mainForm.Controls.Add($type); }
 
@@ -9,8 +9,8 @@ $lvlTypes.Add("Warning", 3);
 $lvlTypes.Add("Information", 4);
 
 $mainForm = New-Object System.Windows.Forms.Form;
-$mainForm.Width = 400;
-$mainForm.Height = 400;
+$mainForm.Width = 500;
+$mainForm.Height = 500;
 $mainForm.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle;
 
 $logLabel = New-Object System.Windows.Forms.Label;
@@ -25,6 +25,7 @@ $lstlog | Foreach-Object { $logField.Items.Add($_) | Out-Null; }
 $logField.SelectedItem = "System";
 $logField.Location = "110, 5";
 $logField.Width = 260;
+$logField.Add_SelectedValueChanged({ <#Update Provider List#> });
 addCtrl($logField);
 
 $levelLabel = New-Object System.Windows.Forms.Label;
@@ -88,20 +89,20 @@ $btnSubmit = New-Object System.Windows.Forms.Button;
 $btnSubmit.Width = 50;
 $btnSubmit.Location = "10, 245";
 $btnSubmit.Text = "Submit";
-$btnSubmit.Add_MouseDown({ 
-    $btnSubmit.DialogResult = [System.Windows.Forms.DialogResult]::OK;
-});
+$btnSubmit.Add_MouseDown({  $rtbResult.Text = buildCmd; });
 addCtrl($btnSubmit);
 
 $btnCancel = New-Object System.Windows.Forms.Button;
 $btnCancel.Location = "110, 245";
 $btnCancel.Text = "Cancel";
+$btnCancel.Add_MouseDown({ $mainForm.Close(); });
 addCtrl($btnCancel);
 
 $rtbResult = New-Object System.Windows.Forms.RichTextBox;
-$rtbResult.Width = 350;
-$rtbResult.Height = 350;
-$rtbResult.Location = "10, 10";
+$rtbResult.Width = 475;
+$rtbResult.Height = 150;
+$rtbResult.Location = "10, 285";
+addCtrl($rtbResult);
 
 function notNull ($str) {
     if(![System.String]::IsNullOrEmpty($str)) { return $true; }
@@ -129,16 +130,13 @@ function buildCmd {
     $cmd = "Get-WinEvent -FilterHashtable @{ $attr }";
     if (notNull($max)) { $cmd += " -MaxEvents $max"; }
 
-    $cmd = "try{$cmd}catch{$_.Exception.Message}";
-
     return $cmd;
 }
-
-Register-ObjectEvent -InputObject $btnSubmit -Action { $rtbResult.Text = buildCmd; } -EventName "Click" | Out-Null
 
 ##
 $mainForm.ShowDialog() | Out-Null;
 
+<#
 if ($btnSubmit.DialogResult -eq "OK") {
     $mainForm.Controls.Clear();
     addCtrl($rtbResult);
@@ -151,4 +149,4 @@ if ($btnSubmit.DialogResult -eq "OK") {
         Write-Host $_.Exception.Message -ForegroundColor Yellow -BackgroundColor Black;
     }
 }
-
+#>
