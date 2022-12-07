@@ -147,6 +147,11 @@ function main {}
     $outHtml.Add_CheckStateChanged({ chkItm($outHtml); });
     $grpOptns.Controls.Add($outHtml);
 
+    $ctmnu = New-Object System.Windows.Forms.ContextMenu;
+    $itemOne = $ctmnu.MenuItems.Add("Item One");
+    $itemOne.Add_Click({ });
+    $grpOptns.ContextMenu = $ctmnu;
+
     $rtbResult = New-Object System.Windows.Forms.RichTextBox;
     $rtbResult.Width = 475;
     $rtbResult.Height = 150;
@@ -157,6 +162,7 @@ function main {}
     $btnRun.Location = "10, 480";
     $btnRun.Text = "Run";
     $btnRun.Add_Click({ runCMD; });
+
     addCtrl($btnRun);
 
     $btnCopy = New-Object System.Windows.Forms.Button;
@@ -224,7 +230,7 @@ function buildCmd {
     switch ($true) {
         $grid 
         {
-            $cmd += " | Out-GridView";       
+            $cmd += " | Out-GridView -Wait";       
         }
 
         $html
@@ -288,7 +294,7 @@ function runCMD {
     $cmd | Out-File $outfile
 
     try {
-        Start-Process $ps -ArgumentList "-NoLogo -NoExit -File $outfile" | Out-Null;
+        Start-Process $ps -ArgumentList "-NoLogo -File $outfile" | Out-Null;
     }
     catch {
         newError "Powershell failed to start.";
