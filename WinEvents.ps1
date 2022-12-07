@@ -130,7 +130,7 @@ function main {
                     $c.Checked = [System.Windows.Forms.CheckState]::Unchecked;
                 }
             }
-            }
+        }
     }
 
     $outGrid = New-Object System.Windows.Forms.CheckBox;
@@ -148,9 +148,10 @@ function main {
     $grpOptns.Controls.Add($outHtml);
 
     $svDlg = New-Object System.Windows.Forms.SaveFileDialog;
-    $svDlg.FileName = "C:\temp\WinEvents-output.html";
+    $Script:HtmlFile = "C:\temp\WinEvents-output.html";
+    $svDlg.FileName = $HtmlFile;
     $svDlg.Filter = "HTML Files (*.htm, *.html)|*.html;*.htm";
-    $svDlg.Add_FileOk({ <# Set Filename #> });
+    $svDlg.Add_FileOk({ $Script:HtmlFile = $svDlg.FileName; });
 
     $ctmnu = New-Object System.Windows.Forms.ContextMenu;
     $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML Filename");
@@ -177,6 +178,7 @@ function main {
     addCtrl($btnCopy);
 
     $mainForm.ShowDialog() | Out-Null;
+
 }
 
 function addCtrl ($type) { 
@@ -241,10 +243,10 @@ function buildCmd {
         $html
         {
             $css = buildCss;
-            $fn = [System.IO.Path]::GetTempFileName();
-            $fn = $fn.Replace(".tmp", ".html");
+            #$fn = [System.IO.Path]::GetTempFileName();
+            #$fn = $fn.Replace(".tmp", ".html");
             $cmd = "`$events = $cmd;";
-            $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Html -Title `"WinEvents - $log`" -CssUri `"$css`" | Out-File `"$fn`"; Invoke-Item `"$fn`";";
+            $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Html -Title `"WinEvents - $log`" -CssUri `"$css`" | Out-File `"$HtmlFile`"; Invoke-Item `"$HtmlFile`";";
         }
     }
 
@@ -260,11 +262,9 @@ function buildCss {
        border: 3px solid #000000;
        border-spacing: 0px;
     }
-
     th, td {
         border: 1px solid #000000;
     }
-
     tbody tr:nth-child(odd){
       background-color: #eeeeee;
       color: #000000;
@@ -273,7 +273,6 @@ function buildCss {
       background-color: #dddddd;
       color: #000000;
     }
-
     th {
         Background-Color: #efefef;
         Color: #000000;
