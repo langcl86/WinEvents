@@ -147,9 +147,14 @@ function main {}
     $outHtml.Add_CheckStateChanged({ chkItm($outHtml); });
     $grpOptns.Controls.Add($outHtml);
 
+    $svDlg = New-Object System.Windows.Forms.SaveFileDialog;
+    $svDlg.FileName = "C:\temp\WinEvents-output.html";
+    $svDlg.Filter = "HTML Files (*.htm, *.html)|*.html;*.htm";
+    $svDlg.Add_FileOk({ <# Set Filename #> });
+
     $ctmnu = New-Object System.Windows.Forms.ContextMenu;
-    $itemOne = $ctmnu.MenuItems.Add("Item One");
-    $itemOne.Add_Click({ });
+    $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML Filename");
+    $setHtmlFN.Add_Click({ $svDlg.ShowDialog(); });
     $grpOptns.ContextMenu = $ctmnu;
 
     $rtbResult = New-Object System.Windows.Forms.RichTextBox;
