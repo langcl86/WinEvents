@@ -1,4 +1,4 @@
-function main {
+function main {}
     Add-Type -AssemblyName System.Windows.Forms;
 
     $logList = (Get-WinEvent -ListLog * -ErrorAction SilentlyContinue | Sort-Object RecordCount -Descending).Logname
@@ -115,6 +115,38 @@ function main {
     $btnCancel.Add_Click({ $mainForm.Close(); });
     addCtrl($btnCancel);
 
+    $grpOptns = New-Object System.Windows.Forms.GroupBox;
+    $grpOptns.Text = "Output: ";
+    $grpOptns.Width = 260;
+    $grpOptns.Height = 50;
+    $grpOptns.Location = "200, 260";
+    addCtrl($grpOptns);
+
+
+    function chkItm([System.Windows.Forms.CheckBox]$chkbx) {
+        if($chkbx.CheckState -eq [System.Windows.Forms.CheckState]::Checked) {
+            foreach ($c in $grpOptns.Controls) {
+                if ($c.Name -ne $chkbx.Name) {
+                    $c.Checked = [System.Windows.Forms.CheckState]::Unchecked;
+                }
+            }
+            }
+    }
+
+    $outGrid = New-Object System.Windows.Forms.CheckBox;
+    $outGrid.Name = "Out Grid-View";
+    $outGrid.Text = "Out Grid-View";
+    $outGrid.Location = "10, 20";
+    $outGrid.Add_CheckStateChanged({ chkItm($outGrid); });
+    $grpOptns.Controls.Add($outGrid);
+
+    $outHtml = New-Object System.Windows.Forms.CheckBox;
+    $outHtml.Name = "Out HTML";
+    $outHtml.Text = "Out HTML";
+    $outHtml.Location = "130, 20";
+    $outHtml.Add_CheckStateChanged({ chkItm($outHtml); });
+    $grpOptns.Controls.Add($outHtml);
+
     $rtbResult = New-Object System.Windows.Forms.RichTextBox;
     $rtbResult.Width = 475;
     $rtbResult.Height = 150;
@@ -134,7 +166,7 @@ function main {
     addCtrl($btnCopy);
 
     $mainForm.ShowDialog() | Out-Null;
-}
+#}
 
 function addCtrl ($type) { 
     try {
