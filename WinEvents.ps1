@@ -1,23 +1,13 @@
 function main {
     Add-Type -AssemblyName System.Windows.Forms;
 
+    $logList = (Get-WinEvent -ListLog * -ErrorAction SilentlyContinue | Sort-Object RecordCount -Descending).Logname
+
     $lvlTypes = @{};
     $lvlTypes.Add("Critical", 1);
     $lvlTypes.Add("Error", 2);
     $lvlTypes.Add("Warning", 3);
     $lvlTypes.Add("Information", 4);
-
-    function addCtrl ($type) { $mainForm.Controls.Add($type); }
-
-    function updateProviders {
-        try {
-            $providerList = Get-WinEvent -ListProvider * -ErrorAction SilentlyContinue;
-            $providerList | Where-Object {$_.LogLinks.LogName -EQ $logField.Text} | ForEach-Object {$providerField.Items.Add($_.Name);} | Out-Null;
-        }
-        catch {
-           [System.Windows.Forms.MessageBox]::Show("Failed to update provider list`r`n$($_.Exception.Message)","Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error);
-        }
-    }
 
     $mainForm = New-Object System.Windows.Forms.Form;
     $mainForm.Width = 500;
@@ -140,6 +130,18 @@ function main {
     $mainForm.ShowDialog() | Out-Null;
 }
 
+function addCtrl ($type) { $mainForm.Controls.Add($type); }
+
+function updateProviders {
+    try {
+        $providerList = Get-WinEvent -ListProvider * -ErrorAction SilentlyContinue;
+        $providerList | Where-Object {$_.LogLinks.LogName -EQ $logField.Text} | ForEach-Object {$providerField.Items.Add($_.Name);} | Out-Null;
+    }
+    catch {
+        [System.Windows.Forms.MessageBox]::Show("Failed to update provider list`r`n$($_.Exception.Message)","Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error);
+    }
+}
+
 function notNull ($str) {
     if(![System.String]::IsNullOrEmpty($str)) { return $true; }
     else { return $false }
@@ -188,5 +190,3 @@ function runCMD {
 ##
 
 main;
-
-Invoke-Expression (buildCmd);
