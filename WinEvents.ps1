@@ -1,4 +1,4 @@
-function main {}
+function main {
     Add-Type -AssemblyName System.Windows.Forms;
 
     $logList = (Get-WinEvent -ListLog * -ErrorAction SilentlyContinue | Sort-Object RecordCount -Descending).Logname
@@ -177,7 +177,7 @@ function main {}
     addCtrl($btnCopy);
 
     $mainForm.ShowDialog() | Out-Null;
-#}
+}
 
 function addCtrl ($type) { 
     try {
