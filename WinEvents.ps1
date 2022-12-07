@@ -156,6 +156,20 @@ function main {
     $ctmnu = New-Object System.Windows.Forms.ContextMenu;
     $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML Filename");
     $setHtmlFN.Add_Click({ $svDlg.ShowDialog(); });
+    $Script:Htmlopen = $false;
+    $setHtmlopen = $ctmnu.MenuItems.Add("Open HTML File");
+    $setHtmlopen.Add_Click({
+        switch($Script:Htmlopen) {
+            $true {
+                $setHtmlopen.Text = "Open HTML File";
+                $Script:Htmlopen = $false;
+            }
+            $false {
+                $setHtmlopen.Text = "Don't open HTML File";
+                $Script:Htmlopen = $true;
+            }
+        }
+    });
     $grpOptns.ContextMenu = $ctmnu;
 
     $rtbResult = New-Object System.Windows.Forms.RichTextBox;
@@ -246,7 +260,8 @@ function buildCmd {
             #$fn = [System.IO.Path]::GetTempFileName();
             #$fn = $fn.Replace(".tmp", ".html");
             $cmd = "`$events = $cmd;";
-            $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Html -Title `"WinEvents - $log`" -CssUri `"$css`" | Out-File `"$HtmlFile`"; Invoke-Item `"$HtmlFile`";";
+            $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Html -Title `"WinEvents - $log`" -CssUri `"$css`" | Out-File `"$HtmlFile`";";
+            if ($Htmlopen) { $cmd += "Invoke-Item `"$HtmlFile`";"; }
         }
     }
 
