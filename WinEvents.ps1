@@ -135,14 +135,14 @@ function main {}
 
     $outGrid = New-Object System.Windows.Forms.CheckBox;
     $outGrid.Name = "Out Grid-View";
-    $outGrid.Text = "Out Grid-View";
+    $outGrid.Text = $outGrid.Name;
     $outGrid.Location = "10, 20";
     $outGrid.Add_CheckStateChanged({ chkItm($outGrid); });
     $grpOptns.Controls.Add($outGrid);
 
     $outHtml = New-Object System.Windows.Forms.CheckBox;
     $outHtml.Name = "Out HTML";
-    $outHtml.Text = "Out HTML";
+    $outHtml.Text = $outHtml.Name;
     $outHtml.Location = "130, 20";
     $outHtml.Add_CheckStateChanged({ chkItm($outHtml); });
     $grpOptns.Controls.Add($outHtml);
@@ -204,6 +204,8 @@ function buildCmd {
     $level = $levelField.Text;
     $id = $idField.Text;
     $max = $maxField.Text;
+    $grid = $outGrid.CheckState -eq [System.Windows.Forms.CheckState]::Checked;
+    $html = $outHtml.CheckState -eq [System.Windows.Forms.CheckState]::Checked;
 
     $attr = @();
     if (notNull($log)) { $attr += "LogName = `"$log`";"; }
@@ -219,7 +221,58 @@ function buildCmd {
     $cmd = "Get-WinEvent -FilterHashtable @{ $attr }";
     if (notNull($max)) { $cmd += " -MaxEvents $max"; }
 
+    switch ($true) {
+        $grid 
+        {
+            $cmd += " | Out-GridView";       
+        }
+
+        $html
+        {
+            $css = buildCss;
+            $fn = [System.IO.Path]::GetTempFileName();
+            $fn = $fn.Replace(".tmp", ".html");
+            $cmd = "`$events = $cmd;";
+            $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Html -Title `"WinEvents - $log`" -CssUri `"$css`" | Out-File `"$fn`"; Invoke-Item `"$fn`";";
+        }
+    }
+
     return $cmd;
+}
+
+function buildCss {
+    $cssFile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvent-styles.css";
+    $css = "
+    table {
+       width: 98%;
+       background-color: #000000;
+       border: 3px solid #000000;
+       border-spacing: 0px;
+    }
+
+    th, td {
+        border: 1px solid #000000;
+    }
+
+    tbody tr:nth-child(odd){
+      background-color: #eeeeee;
+      color: #000000;
+    }
+    tbody tr:nth-child(even){
+      background-color: #dddddd;
+      color: #000000;
+    }
+
+    th {
+        Background-Color: #efefef;
+        Color: #000000;
+        font-family: Verdana;
+        padding: 5px;
+    }
+    ";
+
+    $css | Out-File $cssFile;
+    return $cssFile;
 }
 
 function runCMD {
