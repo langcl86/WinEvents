@@ -1,3 +1,14 @@
+<#
+    .SYNOPSIS
+        Generates Powershell code for querying Windows Event Viewer.
+
+    .DESCRIPTION
+        Powershell code is generated using user provided critera. 
+
+    .AUTHOR
+        clang@spendmend.com
+#>
+
 function main {
     Add-Type -AssemblyName System.Windows.Forms;
 
