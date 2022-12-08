@@ -6,7 +6,7 @@
         Powershell code is generated using user provided critera. 
 
     .AUTHOR
-        clang@spendmend.com
+        clint@clintlang.com
 #>
 
 function main {
@@ -169,7 +169,16 @@ function main {
     $grpOptns.Controls.Add($outJson);   
     
     function svDlg($fn) {
-        
+    <#
+        .SYNOPSIS
+            Helper function for SaveFileDialog
+
+        .DESCRIPTION
+            This SaveFileDialog is a multi-purpose control, behaviour is determined by passed in file name.
+
+        .PARAMETER fn 
+            Specifies the current or default file name. 
+    #>
         switch(([System.IO.FileInfo]$fn).Extension)
         {
             {$PSItem -match ".htm"} { $filter = "HTML Files (*.htm, *.html)|*.html;*.htm"; }
