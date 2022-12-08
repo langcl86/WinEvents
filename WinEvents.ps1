@@ -300,7 +300,7 @@ function buildCmd {
     switch ($true) {
         $grid 
         {
-            $cmd += " | Out-GridView -Wait";       
+            $cmd += " | Out-GridView -Title `"WinEvents - $log`" -PassThru";       
         }
 
         $html
