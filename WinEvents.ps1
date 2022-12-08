@@ -119,7 +119,6 @@ function main {
     $maxField = New-Object System.Windows.Forms.TextBox;
     $maxField.Width = 40;
     $maxField.Location = "110, 240";
-    $maxField.Text = "10";
     addCtrl($maxField);
 
     $btnSubmit = New-Object System.Windows.Forms.Button;
@@ -361,7 +360,7 @@ function buildCmd {
         $grid 
         {
             ## Send object data to Powershell Grid-View
-            $cmd += " | Out-GridView -Title `"WinEvents - $log`" -PassThru;";       
+            $cmd += " | Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | Out-GridView -Title `"WinEvents - $log`" -PassThru;";       
         }
 
         $html
@@ -458,8 +457,7 @@ function runCMD {
      catch {
             `$e = `$_.Exception.Message;
             [System.Windows.Forms.MessageBox]::Show(`"(`$e)`", `"Doh!`", `"OK`", `"Error`");  
-     }
-     ";
+     }";
 
      ## Save code ito temp file 
     $outfile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvents_output.ps1";
