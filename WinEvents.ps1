@@ -1,19 +1,27 @@
 <#
     .SYNOPSIS
-        Generates Powershell code for querying Windows Event Viewer.
+        Generates Powershell code to query Windows Event Viewer.
 
     .DESCRIPTION
-        Powershell code is generated using user provided critera. 
+        Powershell code is generated using field values on a Windows Form. 
+        Search critera is collected and added to a hash table, and then passed 
+        to Get-WinEvent.
 
     .AUTHOR
         clint@clintlang.com
 #>
 
 function main {
+<#
+    .SYNOPSIS
+        Main function used for painting Window Forms GUI.
+#>
     Add-Type -AssemblyName System.Windows.Forms;
 
+    ## Collect all available WinEvent logs
     $logList = (Get-WinEvent -ListLog * -ErrorAction SilentlyContinue | Sort-Object RecordCount -Descending).Logname
-
+    
+    ## Dictionary to look up Level enum value
     $lvlTypes = @{};
     $lvlTypes.Add("Critical", 1);
     $lvlTypes.Add("Error", 2);
@@ -135,6 +143,17 @@ function main {
 
 
     function chkItm([System.Windows.Forms.CheckBox]$chkbx) {
+    <#
+        .SYNOPSIS
+            Helper function controls check boxes like radio buttons.
+
+        .DESCRIPTION
+            Forces only one CheckBox to be selected at a time.
+            Uncheck all CheckBoxes in the Control Group, except the passed in object. 
+        
+        .PARAMETER $chkbx
+            CheckBox Control Object Being Selected 
+    #>
         if($chkbx.CheckState -eq [System.Windows.Forms.CheckState]::Checked) {
             foreach ($c in $grpOptns.Controls) {
                 if ($c.Name -ne $chkbx.Name) {
@@ -201,10 +220,12 @@ function main {
     $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML File Name");
     $Script:HtmlFile = "C:\temp\WinEvents-output.html";
     $setHtmlFN.Add_Click({ svDlg($Script:HtmlFile); });
-    ## Open HTML
+    
+    ## Option to open HTML after execution. 
     $Script:Htmlopen = $false;
     $setHtmlopen = $ctmnu.MenuItems.Add("Open HTML File");
     $setHtmlopen.Add_Click({
+        ## Switch ContextMenu item
         switch($Script:Htmlopen)
         {
             $true
@@ -220,7 +241,7 @@ function main {
         }
     });
 
-    ##Set JSON File
+    ## Set JSON File
     $selJson = $ctmnu.MenuItems.Add("Set JSON File Name");
     $script:JsonFile = "C:\temp\WinEvents-output.json";
     $selJson.Add_Click({ svDlg($Script:JsonFile); });
@@ -247,7 +268,6 @@ function main {
     addCtrl($btnCopy);
 
     $mainForm.ShowDialog() | Out-Null;
-
 }
 
 function addCtrl ($type) {
