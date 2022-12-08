@@ -241,7 +241,11 @@ function main {
 
 }
 
-function addCtrl ($type) { 
+function addCtrl ($type) {
+<#
+    .SYNOPSIS
+        Helper function used to add Controls to the Main Form.
+#> 
     try {
         $mainForm.Controls.Add($type);
     }
@@ -251,6 +255,14 @@ function addCtrl ($type) {
 }
 
 function updateProviders {
+<#
+    .SYNOPSIS
+        Update list of source providers.
+
+    .DESCRIPTION
+        Query source providers for the selected log, then add to ComboBox items.
+        ComboBox list items are updated when the logname changes.
+#>
     try {
         $providerList = Get-WinEvent -ListProvider * -ErrorAction SilentlyContinue;
         $providerList | Where-Object {$_.LogLinks.LogName -EQ $logField.Text} | ForEach-Object {$providerField.Items.Add($_.Name);} | Out-Null;
@@ -261,15 +273,31 @@ function updateProviders {
 }
 
 function newError ($msg) {
+<#
+    .SYNOPSIS
+        Helper function for exception handling.
+
+    .DESCRIPTION
+        When an exception is caught a MessageBox style error message is displayed.
+#>
         [System.Windows.Forms.MessageBox]::Show("$msg`r`n$($_.Exception.Message)","Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error);
 }
 
 function notNull ($str) {
+<#
+    .SYNOPSIS
+        Helper function determines if attribute is set.
+#>
     if(![System.String]::IsNullOrEmpty($str)) { return $true; }
     else { return $false }
 }
 
 function buildCmd {
+<#
+    .SYNOPSIS
+        Build Powershell command from Form input
+#>
+    ## Get input from fields in Form
     $log = $logField.Text;
     $provider = $providerField.Text;
     $dateStart = $datePicker1.Value;
@@ -278,33 +306,38 @@ function buildCmd {
     $id = $idField.Text;
     $max = $maxField.Text;
 
+    ## Look for selected output option
     $checked = [System.Windows.Forms.CheckState]::Checked;
     $grid = $outGrid.CheckState -eq $checked;
     $html = $outHtml.CheckState -eq $checked;
     $json = $outJson.CheckState -eq $checked;
 
     $attr = @();
-    if (notNull($log)) { $attr += "LogName = `"$log`";"; }
-    if (notNull($provider)) { $attr += "ProviderName = `"$provider`";"; }
-    if (notNull($dateStart)) { $attr += "StartTime = `"$dateStart`";"; }
-    if (notNull($dateEnd)) { $attr += "EndTime = `"$dateEnd`";"; }
-    if (notNull($level)) { 
-        $lvlEnum = $lvlTypes.Item($level);
-        $attr += "Level = `"$lvlEnum`"";
-     }
-    if (notNull($id)) { $attr += "ID = $id;"; }
+    ## If attribute exists add to list.  
+    if (notNull($log))        { $attr += "LogName = `"$log`";"; }
+    if (notNull($provider))   { $attr += "ProviderName = `"$provider`";"; }
+    if (notNull($dateStart))  { $attr += "StartTime = `"$dateStart`";"; }
+    if (notNull($dateEnd))    { $attr += "EndTime = `"$dateEnd`";"; }
+    if (notNull($level))      { $attr += [System.String]::Format("Level = `"{0}`";", $lvlTypes.Item($level)); }
+    if (notNull($id))         { $attr += "ID = $id;"; }
 
+    ## Write PS command
     $cmd = "Get-WinEvent -FilterHashtable @{ $attr }";
+
+    ## Add MaxEvents property if specified 
     if (notNull($max)) { $cmd += " -MaxEvents $max"; }
 
+    ## Control output options
     switch ($true) {
         $grid 
         {
+            ## Send object data to Powershell Grid-View
             $cmd += " | Out-GridView -Title `"WinEvents - $log`" -PassThru;";       
         }
 
         $html
         {
+            ## Send object data to HTML Table
             $css = buildCss;
             #$fn = [System.IO.Path]::GetTempFileName();
             #$fn = $fn.Replace(".tmp", ".html");
@@ -315,6 +348,7 @@ function buildCmd {
 
         $json
         {
+            ## Convert object data to JSON for file transfer
             $cmd = "`$events = $cmd;";
             $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Json | Out-File `"$JsonFile`";";
         }
@@ -324,7 +358,16 @@ function buildCmd {
 }
 
 function buildCss {
-    $cssFile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvent-styles.css";
+<#
+    .SYNOPSIS
+        Save CSS file for HTML Table Output mode
+
+    .DESCRIPTION
+        CSS file is saved in the environemt temp location.
+        Function returns path to CSS file.             
+#>
+    
+    ## CSS
     $css = "
     table {
        width: 98%;
@@ -351,24 +394,39 @@ function buildCss {
     }
     ";
 
+    ## Write CSS file and return filename
+    $cssFile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvent-styles.css";
     $css | Out-File $cssFile;
     return $cssFile;
 }
 
 function runCMD {
+<#
+    .SYNOPSIS
+        Execute command in results text box.
+
+    .DESCRIPTION
+        Function executes when the Run button is selected.
+        Any code in the results TextBox is saved to a temp file in %TEMP%.
+        Script file is passed into a new Powershell process.
+#>
+    ## Get code from TextBox
     $cmd = $rtbResult.Text;
 
+    ## Check for value
     if($cmd.Length -lt 1) { 
         newError "Command text is empty.";
         return;
      }
-        
-    [System.IO.FileInfo]$ps =  Join-Path ([System.Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe";
+  
+     ## Save code ito temp file 
     $outfile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvents_output.ps1";
     $cmd | Out-File $outfile
 
+    ## Start Process
     try {
-        Start-Process $ps -ArgumentList "-NoLogo -File $outfile" | Out-Null;
+        [System.IO.FileInfo]$ps =  Join-Path ([System.Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe";
+        Start-Process $ps -ArgumentList "-NoLogo -NoExit -File $outfile" | Out-Null;
     }
     catch {
         newError "Powershell failed to start.";
