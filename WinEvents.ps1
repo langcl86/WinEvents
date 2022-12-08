@@ -447,7 +447,20 @@ function runCMD {
         newError "Command text is empty.";
         return;
      }
-  
+
+     ## Add error handling 
+     $cmd = "
+     `$ErrorActionPreference = 'Stop';
+     Add-Type -AssemblyName System.Windows.Forms;
+     try {
+            $cmd
+     }
+     catch {
+            `$e = `$_.Exception.Message;
+            [System.Windows.Forms.MessageBox]::Show(`"(`$e)`", `"Doh!`", `"OK`", `"Error`");  
+     }
+     ";
+
      ## Save code ito temp file 
     $outfile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvents_output.ps1";
     $cmd | Out-File $outfile
@@ -455,7 +468,7 @@ function runCMD {
     ## Start Process
     try {
         [System.IO.FileInfo]$ps =  Join-Path ([System.Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe";
-        Start-Process $ps -ArgumentList "-NoLogo -NoExit -File $outfile" | Out-Null;
+        Start-Process $ps -ArgumentList "-NoLogo -File $outfile" | Out-Null;
     }
     catch {
         newError "Powershell failed to start.";
