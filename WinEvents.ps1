@@ -145,42 +145,77 @@ function main {
     }
 
     $outGrid = New-Object System.Windows.Forms.CheckBox;
-    $outGrid.Name = "Out Grid-View";
+    $outGrid.Name = "Grid-View";
     $outGrid.Text = $outGrid.Name;
+    $outGrid.Width = "75";
     $outGrid.Location = "10, 20";
     $outGrid.Add_CheckStateChanged({ chkItm($outGrid); });
     $grpOptns.Controls.Add($outGrid);
 
     $outHtml = New-Object System.Windows.Forms.CheckBox;
-    $outHtml.Name = "Out HTML";
+    $outHtml.Name = "HTML";
     $outHtml.Text = $outHtml.Name;
-    $outHtml.Location = "130, 20";
+    $outHtml.Location = "100, 20";
+    $outHtml.Width = "75";
     $outHtml.Add_CheckStateChanged({ chkItm($outHtml); });
     $grpOptns.Controls.Add($outHtml);
 
-    $svDlg = New-Object System.Windows.Forms.SaveFileDialog;
-    $Script:HtmlFile = "C:\temp\WinEvents-output.html";
-    $svDlg.FileName = $HtmlFile;
-    $svDlg.Filter = "HTML Files (*.htm, *.html)|*.html;*.htm";
-    $svDlg.Add_FileOk({ $Script:HtmlFile = $svDlg.FileName; });
+    $outJson = New-Object System.Windows.Forms.CheckBox;
+    $outJson.Name = "JSON";
+    $outJson.Text = $outJson.Name;
+    $outJson.Location = "180, 20";
+    $outJson.Width = "75";
+    $outJson.Add_CheckStateChanged({ chkItm($outJson); });
+    $grpOptns.Controls.Add($outJson);   
+    
+    function svDlg($fn) {
+        
+        switch(([System.IO.FileInfo]$fn).Extension)
+        {
+            {$PSItem -match ".htm"} { $filter = "HTML Files (*.htm, *.html)|*.html;*.htm"; }
+
+            ".json" { $filter = "JSON Files (*.json) | *.json;"; }
+
+            default { $filter = ""; }
+        }
+
+        $svDlg = New-Object System.Windows.Forms.SaveFileDialog;
+        $svDlg.FileName = $fn;
+        $svDlg.Filter = $filter;
+        $svDlg.Add_FileOk({ $fn = $svDlg.FileName; });
+        $svDlg.ShowDialog();
+    }
 
     $ctmnu = New-Object System.Windows.Forms.ContextMenu;
-    $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML Filename");
-    $setHtmlFN.Add_Click({ $svDlg.ShowDialog(); });
+    
+    ## Set HTML File
+    $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML File Name");
+    $Script:HtmlFile = "C:\temp\WinEvents-output.html";
+    $setHtmlFN.Add_Click({ svDlg($Script:HtmlFile); });
+    ## Open HTML
     $Script:Htmlopen = $false;
     $setHtmlopen = $ctmnu.MenuItems.Add("Open HTML File");
     $setHtmlopen.Add_Click({
-        switch($Script:Htmlopen) {
-            $true {
+        switch($Script:Htmlopen)
+        {
+            $true
+            {
                 $setHtmlopen.Text = "Open HTML File";
                 $Script:Htmlopen = $false;
             }
-            $false {
+            $false
+            {
                 $setHtmlopen.Text = "Don't open HTML File";
                 $Script:Htmlopen = $true;
             }
         }
     });
+
+    ##Set JSON File
+    $selJson = $ctmnu.MenuItems.Add("Set JSON File Name");
+    $script:JsonFile = "C:\temp\WinEvents-output.json";
+    $selJson.Add_Click({ svDlg($Script:JsonFile); });
+
     $grpOptns.ContextMenu = $ctmnu;
 
     $rtbResult = New-Object System.Windows.Forms.RichTextBox;
@@ -242,8 +277,11 @@ function buildCmd {
     $level = $levelField.Text;
     $id = $idField.Text;
     $max = $maxField.Text;
-    $grid = $outGrid.CheckState -eq [System.Windows.Forms.CheckState]::Checked;
-    $html = $outHtml.CheckState -eq [System.Windows.Forms.CheckState]::Checked;
+
+    $checked = [System.Windows.Forms.CheckState]::Checked;
+    $grid = $outGrid.CheckState -eq $checked;
+    $html = $outHtml.CheckState -eq $checked;
+    $json = $outJson.CheckState -eq $checked;
 
     $attr = @();
     if (notNull($log)) { $attr += "LogName = `"$log`";"; }
@@ -273,6 +311,12 @@ function buildCmd {
             $cmd = "`$events = $cmd;";
             $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Html -Title `"WinEvents - $log`" -CssUri `"$css`" | Out-File `"$HtmlFile`";";
             if ($Htmlopen) { $cmd += "Invoke-Item `"$HtmlFile`";"; }
+        }
+
+        $json
+        {
+            $cmd = "`$events = $cmd;";
+            $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Json | Out-File `"$JsonFile`";";
         }
     }
 
