@@ -204,21 +204,31 @@ function main {
 
         .PARAMETER fn 
             Specifies the current or default file name. 
+
     #>
         switch(([System.IO.FileInfo]$fn).Extension)
         {
-            { [Regex]::IsMatch($PSItem, "^.html?$")  } { $filter = "HTML Files (*.htm, *.html)|*.html;*.htm"; }
+            { [Regex]::IsMatch($PSItem, "^.html?$")  } 
+                    { 
+                        $target = "HtmlFile";
+                        $filter = "HTML Files (*.htm, *.html)|*.html;*.htm";
+                    }
 
-            ".json" { $filter = "JSON Files (*.json) | *.json;"; }
+            { [Regex]::IsMatch($PSItem, "^.json$")  }
+                    { 
+                        $target = "JsonFile";
+                        $filter = "JSON Files (*.json) | *.json;";
+                    }
 
-            default { $filter = ""; }
+            default { return; }
         }
 
         $svDlg = New-Object System.Windows.Forms.SaveFileDialog;
         $svDlg.FileName = $fn;
         $svDlg.Filter = $filter;
-        $svDlg.Add_FileOk({ $fn = $svDlg.FileName; });
+        $svDlg.Add_FileOk({ Invoke-Expression -Command "`$Script:$target = `"$($svDlg.FileName)`""; });
         $svDlg.ShowDialog();
+        $svDlg
     }
 
     $ctmnu = New-Object System.Windows.Forms.ContextMenu;
@@ -226,8 +236,12 @@ function main {
     ## Set HTML File
     $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML File Name");
     $Script:HtmlFile = "C:\temp\WinEvents-output.html";
-    $setHtmlFN.Add_Click({ svDlg($Script:HtmlFile); });
-    
+    $retval = "";
+    $setHtmlFN.Add_Click({ 
+        svDlg($Script:HtmlFile); 
+        if ($retval.Length -gt 0) { $Script:HtmlFile = $retval; }
+    });
+
     ## Option to open HTML after execution. 
     $Script:Htmlopen = $false;
     $setHtmlopen = $ctmnu.MenuItems.Add("Open HTML File");
@@ -379,7 +393,7 @@ function buildCmd {
             $css = buildCss;
             #$fn = [System.IO.Path]::GetTempFileName();
             #$fn = $fn.Replace(".tmp", ".html");
-            $cmd = "`$events = $cmd;";
+            $cmd = "`$events = $cmd;";` 
             $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Html -Title `"WinEvents - $log`" -CssUri `"$css`" | Out-File `"$HtmlFile`";";
             if ($Htmlopen) { $cmd += "Invoke-Item `"$HtmlFile`";"; }
         }
