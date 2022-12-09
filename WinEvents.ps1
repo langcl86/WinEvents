@@ -35,6 +35,11 @@ function main {
     $mainForm.Height = 550;
     $mainForm.Text = "WinEvents";
 
+    $tooltip = New-Object System.Windows.Forms.ToolTip;
+    $tooltip.InitialDelay = 1000;
+    $tooltip.AutoPopDelay = 5000;
+    $tooltip.ReshowDelay = 500;
+
     $logLabel = New-Object System.Windows.Forms.Label;
     $logLabel.Text = "Log Name: ";
     $logLabel.Location = "10, 10";
@@ -168,6 +173,7 @@ function main {
     $outGrid.Width = "75";
     $outGrid.Location = "10, 20";
     $outGrid.Add_CheckStateChanged({ chkItm($outGrid); });
+    $tooltip.SetToolTip($outGrid, "This output method requires an active desktop session.");
     $grpOptns.Controls.Add($outGrid);
 
     $outHtml = New-Object System.Windows.Forms.CheckBox;
@@ -176,6 +182,7 @@ function main {
     $outHtml.Location = "100, 20";
     $outHtml.Width = "75";
     $outHtml.Add_CheckStateChanged({ chkItm($outHtml); });
+    $tooltip.SetToolTip($outHtml, "Can be used for active desktop or console session.");
     $grpOptns.Controls.Add($outHtml);
 
     $outJson = New-Object System.Windows.Forms.CheckBox;
@@ -184,8 +191,9 @@ function main {
     $outJson.Location = "180, 20";
     $outJson.Width = "75";
     $outJson.Add_CheckStateChanged({ chkItm($outJson); });
+    $tooltip.SetToolTip($outJson, "Useful for exporting objects.");
     $grpOptns.Controls.Add($outJson);   
-    
+
     function svDlg($fn) {
     <#
         .SYNOPSIS
@@ -199,7 +207,7 @@ function main {
     #>
         switch(([System.IO.FileInfo]$fn).Extension)
         {
-            {$PSItem -match ".htm"} { $filter = "HTML Files (*.htm, *.html)|*.html;*.htm"; }
+            { [Regex]::IsMatch($PSItem, "^.html?$")  } { $filter = "HTML Files (*.htm, *.html)|*.html;*.htm"; }
 
             ".json" { $filter = "JSON Files (*.json) | *.json;"; }
 
@@ -214,7 +222,7 @@ function main {
     }
 
     $ctmnu = New-Object System.Windows.Forms.ContextMenu;
-    
+
     ## Set HTML File
     $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML File Name");
     $Script:HtmlFile = "C:\temp\WinEvents-output.html";
@@ -229,12 +237,14 @@ function main {
         {
             $true
             {
-                $setHtmlopen.Text = "Open HTML File";
+                ## Setting switched off
+                $setHtmlopen.Checked = $false;
                 $Script:Htmlopen = $false;
             }
             $false
             {
-                $setHtmlopen.Text = "Don't open HTML File";
+                ## Setting switched on
+                $setHtmlopen.Checked = $true;
                 $Script:Htmlopen = $true;
             }
         }
