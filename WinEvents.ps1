@@ -51,6 +51,7 @@ function main {
     $logField.SelectedItem = "System";
     $logField.Location = "110, 5";
     $logField.Width = 260;
+    $tooltip.SetToolTip($logField, "Log Name");
     $logField.Add_SelectedValueChanged({ updateProviders; });
     addCtrl($logField);
 
@@ -63,6 +64,7 @@ function main {
     $providerField = New-Object System.Windows.Forms.ComboBox;
     $providerField.Width = 260;
     $providerField.Location = "110, 45";
+    $tooltip.SetToolTip($providerField, "Provider/Source");
     updateProviders;
     addCtrl($providerField);
 
@@ -76,6 +78,7 @@ function main {
     $lvlTypes.Keys | ForEach-Object { $levelField.Items.Add($_); } | Out-Null;
     $levelField.Width = 200;
     $levelField.Location = "110, 85";
+    $tooltip.SetToolTip($levelField, "Severity Level");
     addCtrl($levelField);
 
     $idLabel = New-Object System.Windows.Forms.Label;
@@ -86,6 +89,7 @@ function main {
 
     $idField = New-Object System.Windows.Forms.TextBox;
     $idField.Location = "110, 125";
+    $tooltip.SetToolTip($idField, "Event ID");
     addCtrl($idField);
 
     $dateLabel1 = New-Object System.Windows.Forms.Label;
@@ -96,8 +100,9 @@ function main {
 
     $datePicker1 = New-Object System.Windows.Forms.DateTimePicker;
     $datePicker1.Location = "110, 165";
-    $datePicker1.Value = (Get-Date).AddDays("-1");
+    $datePicker1.Value = (Get-Date).AddDays("-1").Date;
     $datePicker1.MaxDate = (Get-Date);
+    $tooltip.SetToolTip($datePicker1, "Show events after this date");
     $datePicker1.Add_ValueChanged({$datePicker2.MinDate = $datePicker1.Value;});
     addCtrl($datePicker1);
 
@@ -113,6 +118,7 @@ function main {
     $datePicker2.Value = (Get-Date);
     $datePicker2.MinDate = $datePicker1.Value;
     $datePicker2.MaxDate = (Get-Date);
+    $tooltip.SetToolTip($datePicker2, "No events after this date");
     addCtrl($datePicker2);
 
     $maxLabel = New-Object System.Windows.Forms.Label;
@@ -124,17 +130,20 @@ function main {
     $maxField = New-Object System.Windows.Forms.TextBox;
     $maxField.Width = 40;
     $maxField.Location = "110, 240";
+    $tooltip.SetToolTip($maxField, "Leave blank for no limit");
     addCtrl($maxField);
 
     $btnSubmit = New-Object System.Windows.Forms.Button;
     $btnSubmit.Location = "10, 280";
     $btnSubmit.Text = "Submit";
+    $tooltip.SetToolTip($btnSubmit, "Build Command");
     $btnSubmit.Add_Click({  $rtbResult.Text = buildCmd; });
     addCtrl($btnSubmit);
 
     $btnCancel = New-Object System.Windows.Forms.Button;
     $btnCancel.Location = "110, 280";
     $btnCancel.Text = "Cancel";
+    $tooltip.SetToolTip($btnCancel, "Close this window");
     $btnCancel.Add_Click({ $mainForm.Close(); });
     addCtrl($btnCancel);
 
@@ -153,7 +162,7 @@ function main {
 
         .DESCRIPTION
             Forces only one CheckBox to be selected at a time.
-            Uncheck all CheckBoxes in the Control Group, except the passed in object. 
+            Unchecks all CheckBoxes in the Control Group, sans the passed in object. 
         
         .PARAMETER $chkbx
             CheckBox Control Object Being Selected 
@@ -200,11 +209,14 @@ function main {
             Helper function for SaveFileDialog
 
         .DESCRIPTION
-            This SaveFileDialog is a multi-purpose control, behaviour is determined by passed in file name.
+            This SaveFileDialog is a multi-purpose Control.
+            File name is passed into parameter 0 and the
+            extension is evaluated by a Switch to determine
+            function behaviour.
 
         .PARAMETER fn 
-            Specifies the current or default file name. 
-
+            Specifies the current or default file name.
+            File name is stored as FileInfo for versatility.
     #>
 
         switch($fn.Extension)
@@ -230,7 +242,6 @@ function main {
         $svDlg.Filter = $filter;
         $svDlg.Add_FileOk({ Invoke-Expression -Command "`$Script:$target = `"$($svDlg.FileName)`""; });
         $svDlg.ShowDialog();
-        $svDlg
     }
 
     $ctmnu = New-Object System.Windows.Forms.ContextMenu;
@@ -282,13 +293,14 @@ function main {
     $btnRun = New-Object System.Windows.Forms.Button;
     $btnRun.Location = "10, 480";
     $btnRun.Text = "Run";
+    $tooltip.SetToolTip($btnRun, "Execute code in results box");
     $btnRun.Add_Click({ runCMD; });
-
     addCtrl($btnRun);
 
     $btnCopy = New-Object System.Windows.Forms.Button;
     $btnCopy.Location = "110, 480";
     $btnCopy.Text = "Copy";
+    $tooltip.SetToolTip($btnCopy, "Copy code in results box to clipboard");
     $btnCopy.Add_Click({ Set-Clipboard $rtbResult.Text; });
     addCtrl($btnCopy);
 
