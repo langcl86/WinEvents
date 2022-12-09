@@ -194,7 +194,7 @@ function main {
     $tooltip.SetToolTip($outJson, "Useful for exporting objects.");
     $grpOptns.Controls.Add($outJson);   
 
-    function svDlg($fn) {
+    function svDlg([System.IO.FileInfo]$fn) {
     <#
         .SYNOPSIS
             Helper function for SaveFileDialog
@@ -206,7 +206,8 @@ function main {
             Specifies the current or default file name. 
 
     #>
-        switch(([System.IO.FileInfo]$fn).Extension)
+
+        switch($fn.Extension)
         {
             { [Regex]::IsMatch($PSItem, "^.html?$")  } 
                     { 
@@ -224,7 +225,8 @@ function main {
         }
 
         $svDlg = New-Object System.Windows.Forms.SaveFileDialog;
-        $svDlg.FileName = $fn;
+        $svDlg.FileName = $fn.Name;
+        $svDlg.InitialDirectory = $fn.Directory;
         $svDlg.Filter = $filter;
         $svDlg.Add_FileOk({ Invoke-Expression -Command "`$Script:$target = `"$($svDlg.FileName)`""; });
         $svDlg.ShowDialog();
