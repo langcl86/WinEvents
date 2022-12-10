@@ -18,9 +18,10 @@ function main {
 #>
     Add-Type -AssemblyName System.Windows.Forms;
 
-    ## Collect all available WinEvent logs
-    $logList = (Get-WinEvent -ListLog * -ErrorAction SilentlyContinue | Sort-Object RecordCount -Descending).Logname
-    
+    ## Collect all available logs
+    $logList = (Get-WinEvent -ListLog * -ErrorAction SilentlyContinue | Sort-Object RecordCount -Descending).Logname;
+    $providerList = Get-WinEvent -ListProvider * -ErrorAction SilentlyContinue;
+
     ## Dictionary to look up Level enum value
     $lvlTypes = @{};
     $lvlTypes.Add("Critical", 1);
@@ -52,7 +53,8 @@ function main {
     $logField.Location = "110, 5";
     $logField.Width = 260;
     $tooltip.SetToolTip($logField, "Log Name");
-    $logField.Add_SelectedValueChanged({ updateProviders; });
+    $logField.Add_LostFocus({ updateProviders; });
+    $logField
     addCtrl($logField);
 
     $providerLabel = New-Object System.Windows.Forms.Label;
@@ -330,8 +332,9 @@ function updateProviders {
         ComboBox list items are updated when the logname changes.
 #>
     try {
-        $providerList = Get-WinEvent -ListProvider * -ErrorAction SilentlyContinue;
+        $providerField.Items.Clear();
         $providerList | Where-Object {$_.LogLinks.LogName -EQ $logField.Text} | ForEach-Object {$providerField.Items.Add($_.Name);} | Out-Null;
+        $providerField.Text = $providerField.Items.Item(0) | Out-Null;
     }
     catch {
         newError "Failed to update provider";
@@ -387,7 +390,7 @@ function buildCmd {
     if (notNull($level))      { $attr += [System.String]::Format("Level = `"{0}`";", $lvlTypes.Item($level)); }
     if (notNull($id))         { $attr += "ID = $id;"; }
 
-    ## Write PS command
+    ## Start building command
     $cmd = "Get-WinEvent -FilterHashtable @{ $attr }";
 
     ## Add MaxEvents property if specified 
