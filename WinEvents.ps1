@@ -14,13 +14,15 @@
 function main {
 <#
     .SYNOPSIS
+        Define Control Objects.  
+
+    .DESCRIPTION
         Main function used for painting Window Forms GUI.
 #>
     Add-Type -AssemblyName System.Windows.Forms;
 
-    ## Collect all available logs
-    $logList = (Get-WinEvent -ListLog * -ErrorAction SilentlyContinue | Sort-Object RecordCount -Descending).Logname;
-    $providerList = Get-WinEvent -ListProvider * -ErrorAction SilentlyContinue;
+    ## Preload 
+    preload;
 
     ## Dictionary to look up Level enum value
     $lvlTypes = @{};
@@ -315,6 +317,30 @@ function main {
     addCtrl($btnCopy);
 
     $mainForm.ShowDialog() | Out-Null;
+}
+
+function preload {
+<#
+    .SYNOPSIS
+        Pre-load WinEvent Properties used in script.
+
+    .DESCRIPTION
+        Large objects are preloaded to improve GUI functionality.
+#>
+    try {
+        ## Preload 
+        Write-Host "Loading Event Logs..." -NoNewline;
+        $Script:logList = (Get-WinEvent -ListLog * -ErrorAction SilentlyContinue | Sort-Object RecordCount -Descending).Logname;
+        Write-Host "DONE" -ForegroundColor Green;
+        Write-Host "Loading Providers..." -NoNewline;
+        $Script:providerList = Get-WinEvent -ListProvider * -ErrorAction SilentlyContinue;
+        Write-Host "DONE" -ForegroundColor Green
+    }
+
+    catch {
+        Write-Host "FAILED" -ForegroundColor Red;
+        Write-Host $_.Exception.Message;
+    }
 }
 
 function addCtrl ($type) {
