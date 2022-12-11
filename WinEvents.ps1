@@ -225,13 +225,13 @@ function main {
             { [Regex]::IsMatch($PSItem, "^.html?$")  } 
                     { 
                         $target = "HtmlFile";
-                        $filter = "HTML Files (*.htm, *.html)|*.html;*.htm";
+                        $filter = "HTML File (*.htm, *.html)|*.html;*.htm";
                     }
 
             { [Regex]::IsMatch($PSItem, "^.json$")  }
                     { 
                         $target = "JsonFile";
-                        $filter = "JSON Files (*.json) | *.json;";
+                        $filter = "JSON File (*.json) | *.json;";
                     }
 
             default { return; }
@@ -244,6 +244,8 @@ function main {
         $svDlg.Add_FileOk({ Invoke-Expression -Command "`$Script:$target = `"$($svDlg.FileName)`""; });
         $svDlg.ShowDialog();
     }
+
+    ## Output Options 
 
     $outptMenu = New-Object System.Windows.Forms.ContextMenu;
 
@@ -281,11 +283,22 @@ function main {
 
     $grpOutpt.ContextMenu = $outptMenu;
 
+    $resultGroup = New-Object System.Windows.Forms.GroupBox
+    $resultGroup.Width = "480";
+    $resultGroup.Height = "155";
+    $resultGroup.Location = "10, 320";
+    $resultGroup.Text = "Powershell Command: ";
+    addCtrl($resultGroup);
+
     $rtbResult = New-Object System.Windows.Forms.RichTextBox;
-    $rtbResult.Width = 475;
-    $rtbResult.Height = 150;
-    $rtbResult.Location = "10, 320";
-    addCtrl($rtbResult);
+    #$rtbResult.Width = 475;
+    #$rtbResult.Height = 150;
+    #$rtbResult.Location = "10, 320";
+    #addCtrl($rtbResult);
+    $rtbResult.Width = 465;
+    $rtbResult.Height = 125;
+    $rtbResult.Location = "10,18";
+    $resultGroup.Controls.Add($rtbResult);
 
     $btnRun = New-Object System.Windows.Forms.Button;
     $btnRun.Location = "10, 480";
@@ -492,7 +505,7 @@ function runCMD {
      }
      catch {
             `$e = `$_.Exception.Message;
-            [System.Windows.Forms.MessageBox]::Show(`"(`$e)`", `"Doh!`", `"OK`", `"Error`");  
+            [System.Windows.Forms.MessageBox]::Show(`"`$e`", `"Doh!`", `"OK`", `"Error`");  
      }";
 
      ## Save code ito temp file 
