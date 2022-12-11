@@ -335,6 +335,7 @@ function preload {
         Write-Host "Loading Providers..." -NoNewline;
         $Script:providerList = Get-WinEvent -ListProvider * -ErrorAction SilentlyContinue;
         Write-Host "DONE" -ForegroundColor Green
+        Clear-Host;
     }
 
     catch {
