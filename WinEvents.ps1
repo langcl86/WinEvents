@@ -54,7 +54,6 @@ function main {
     $logField.Width = 260;
     $tooltip.SetToolTip($logField, "Log Name");
     $logField.Add_LostFocus({ updateProviders; });
-    $logField
     addCtrl($logField);
 
     $providerLabel = New-Object System.Windows.Forms.Label;
@@ -251,10 +250,8 @@ function main {
     ## Set HTML File
     $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML File Name");
     $Script:HtmlFile = "C:\temp\WinEvents-output.html";
-    $retval = "";
     $setHtmlFN.Add_Click({ 
         svDlg($Script:HtmlFile); 
-        if ($retval.Length -gt 0) { $Script:HtmlFile = $retval; }
     });
 
     ## Option to open HTML after execution. 
@@ -332,13 +329,15 @@ function updateProviders {
         ComboBox list items are updated when the logname changes.
 #>
     try {
-        $providerField.Items.Clear();
-        $providerList | Where-Object {$_.LogLinks.LogName -EQ $logField.Text} | ForEach-Object {$providerField.Items.Add($_.Name);} | Out-Null;
-        $providerField.Text = $providerField.Items.Item(0) | Out-Null;
+        $providerField.Items.Clear() | Out-Null;
+        $providerField.Text = [System.String]::Empty | Out-Null;
+       # $providerList | Where-Object {$_.LogLinks.LogName -EQ $logField.Text} | ForEach-Object {$providerField.Items.Add($_.Name);}
     }
     catch {
         newError "Failed to update provider";
     }
+
+
 }
 
 function newError ($msg) {
