@@ -331,13 +331,11 @@ function updateProviders {
     try {
         $providerField.Items.Clear() | Out-Null;
         $providerField.Text = [System.String]::Empty | Out-Null;
-       # $providerList | Where-Object {$_.LogLinks.LogName -EQ $logField.Text} | ForEach-Object {$providerField.Items.Add($_.Name);}
+        $providerList | Where-Object {$_.LogLinks.LogName -EQ $logField.Text} | ForEach-Object {$providerField.Items.Add($_.Name);} | Out-Null;
     }
     catch {
         newError "Failed to update provider";
     }
-
-
 }
 
 function newError ($msg) {
