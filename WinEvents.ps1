@@ -9,7 +9,7 @@
 
     .AUTHOR
         clint@clintlang.com
-#>
+#> 
 
 function main {
 <#
@@ -148,12 +148,12 @@ function main {
     $btnCancel.Add_Click({ $mainForm.Close(); });
     addCtrl($btnCancel);
 
-    $grpOptns = New-Object System.Windows.Forms.GroupBox;
-    $grpOptns.Text = "Output: ";
-    $grpOptns.Width = 260;
-    $grpOptns.Height = 50;
-    $grpOptns.Location = "200, 260";
-    addCtrl($grpOptns);
+    $grpOutpt = New-Object System.Windows.Forms.GroupBox;
+    $grpOutpt.Text = "Output: ";
+    $grpOutpt.Width = 260;
+    $grpOutpt.Height = 50;
+    $grpOutpt.Location = "200, 260";
+    addCtrl($grpOutpt);
 
 
     function chkItm([System.Windows.Forms.CheckBox]$chkbx) {
@@ -169,7 +169,7 @@ function main {
             CheckBox Control Object Being Selected 
     #>
         if($chkbx.CheckState -eq [System.Windows.Forms.CheckState]::Checked) {
-            foreach ($c in $grpOptns.Controls) {
+            foreach ($c in $grpOutpt.Controls) {
                 if ($c.Name -ne $chkbx.Name) {
                     $c.Checked = [System.Windows.Forms.CheckState]::Unchecked;
                 }
@@ -184,7 +184,7 @@ function main {
     $outGrid.Location = "10, 20";
     $outGrid.Add_CheckStateChanged({ chkItm($outGrid); });
     $tooltip.SetToolTip($outGrid, "This output method requires an active desktop session.");
-    $grpOptns.Controls.Add($outGrid);
+    $grpOutpt.Controls.Add($outGrid);
 
     $outHtml = New-Object System.Windows.Forms.CheckBox;
     $outHtml.Name = "HTML";
@@ -193,7 +193,7 @@ function main {
     $outHtml.Width = "75";
     $outHtml.Add_CheckStateChanged({ chkItm($outHtml); });
     $tooltip.SetToolTip($outHtml, "Can be used for active desktop or console session.");
-    $grpOptns.Controls.Add($outHtml);
+    $grpOutpt.Controls.Add($outHtml);
 
     $outJson = New-Object System.Windows.Forms.CheckBox;
     $outJson.Name = "JSON";
@@ -202,7 +202,7 @@ function main {
     $outJson.Width = "75";
     $outJson.Add_CheckStateChanged({ chkItm($outJson); });
     $tooltip.SetToolTip($outJson, "Useful for exporting objects.");
-    $grpOptns.Controls.Add($outJson);   
+    $grpOutpt.Controls.Add($outJson);   
 
     function svDlg([System.IO.FileInfo]$fn) {
     <#
@@ -245,18 +245,16 @@ function main {
         $svDlg.ShowDialog();
     }
 
-    $ctmnu = New-Object System.Windows.Forms.ContextMenu;
+    $outptMenu = New-Object System.Windows.Forms.ContextMenu;
 
     ## Set HTML File
-    $setHtmlFN = $ctmnu.MenuItems.Add("Set HTML File Name");
+    $setHtmlFN = $outptMenu.MenuItems.Add("Set HTML File Name");
     $Script:HtmlFile = "C:\temp\WinEvents-output.html";
-    $setHtmlFN.Add_Click({ 
-        svDlg($Script:HtmlFile); 
-    });
+    $setHtmlFN.Add_Click({ svDlg($Script:HtmlFile); });
 
     ## Option to open HTML after execution. 
     $Script:Htmlopen = $false;
-    $setHtmlopen = $ctmnu.MenuItems.Add("Open HTML File");
+    $setHtmlopen = $outptMenu.MenuItems.Add("Open HTML File");
     $setHtmlopen.Add_Click({
         ## Switch ContextMenu item
         switch($Script:Htmlopen)
@@ -277,11 +275,11 @@ function main {
     });
 
     ## Set JSON File
-    $selJson = $ctmnu.MenuItems.Add("Set JSON File Name");
+    $selJson = $outptMenu.MenuItems.Add("Set JSON File Name");
     $script:JsonFile = "C:\temp\WinEvents-output.json";
     $selJson.Add_Click({ svDlg($Script:JsonFile); });
 
-    $grpOptns.ContextMenu = $ctmnu;
+    $grpOutpt.ContextMenu = $outptMenu;
 
     $rtbResult = New-Object System.Windows.Forms.RichTextBox;
     $rtbResult.Width = 475;
