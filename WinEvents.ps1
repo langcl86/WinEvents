@@ -548,8 +548,12 @@ function runCMD {
     try {
         $cmd | Out-File $outfile
         Invoke-Expression -Command $cmd;
-        #[System.IO.FileInfo]$ps =  Join-Path ([System.Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe";
-        #Start-Process $ps -ArgumentList "-NoLogo -File $outfile" | Out-Null;
+
+        $outSelected = @($outGrid.CheckState,$outHtml.CheckState,$outJson.CheckState);
+        if (-not ($outSelected -contains [System.Windows.Forms.CheckState]::Checked)) {
+            [System.IO.FileInfo]$ps =  Join-Path ([System.Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe";
+            Start-Process $ps -ArgumentList "-NoLogo -NoExit -File $outfile" | Out-Null;
+        }
     }
     catch {
         newError "Failed to run command`r`n$($_.Exception.Message)";
