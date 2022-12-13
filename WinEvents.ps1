@@ -152,7 +152,7 @@ function main {
 
     $grpOutpt = New-Object System.Windows.Forms.GroupBox;
     $grpOutpt.Text = "Output: ";
-    $grpOutpt.Width = 260;
+    $grpOutpt.Width = 263;
     $grpOutpt.Height = 50;
     $grpOutpt.Location = "200, 260";
     addCtrl($grpOutpt);
@@ -286,7 +286,7 @@ function main {
     $grpOutpt.ContextMenu = $outptMenu;
 
     $resultGroup = New-Object System.Windows.Forms.GroupBox
-    $resultGroup.Width = "480";
+    $resultGroup.Width = "455";
     $resultGroup.Height = "155";
     $resultGroup.Location = "10, 320";
     $resultGroup.Text = "Powershell Command: ";
@@ -297,8 +297,8 @@ function main {
     #$rtbResult.Height = 150;
     #$rtbResult.Location = "10, 320";
     #addCtrl($rtbResult);
-    $rtbResult.Width = 465;
-    $rtbResult.Height = 125;
+    $rtbResult.Width = $resultGroup.Width - 20;
+    $rtbResult.Height = $resultGroup.Height - 30;
     $rtbResult.Location = "10,18";
     $resultGroup.Controls.Add($rtbResult);
 
@@ -445,7 +445,7 @@ function buildCmd {
             $css = buildCss;
             #$fn = [System.IO.Path]::GetTempFileName();
             #$fn = $fn.Replace(".tmp", ".html");
-            $cmd = "`$events = $cmd;";` 
+            $cmd = "`$events = $cmd;";
             $cmd += "`$events| Select TimeCreated,ID,LevelDisplayName,ProviderName,Message | ConvertTo-Html -Title `"WinEvents - $log`" -CssUri `"$css`" | Out-File `"$HtmlFile`";";
             if ($Htmlopen) { $cmd += "Invoke-Item `"$HtmlFile`";"; }
         }
@@ -540,7 +540,7 @@ function runCMD {
             `$e = `$_.Exception.Message;
             [System.Windows.Forms.MessageBox]::Show(`"`$e`", `"Doh!`", `"OK`", `"Error`");  
      }";
-
+     
      ## Save code ito temp file 
     $outfile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvents_output.ps1";
 
