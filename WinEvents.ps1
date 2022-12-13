@@ -500,8 +500,14 @@ function buildCss {
 
     ## Write CSS file and return filename
     $cssFile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvent-styles.css";
-    $css | Out-File $cssFile;
-    return $cssFile;
+
+    try {
+        $css | Out-File $cssFile;
+    }
+    catch {
+        newError "Failed to save CSS file`r`n$($_.Exception.Message)"
+    }
+        return $cssFile;
 }
 
 function runCMD {
@@ -537,15 +543,16 @@ function runCMD {
 
      ## Save code ito temp file 
     $outfile = Join-Path ([System.IO.Path]::GetTempPath()) "WinEvents_output.ps1";
-    $cmd | Out-File $outfile
 
     ## Start Process
     try {
-        [System.IO.FileInfo]$ps =  Join-Path ([System.Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe";
-        Start-Process $ps -ArgumentList "-NoLogo -File $outfile" | Out-Null;
+        $cmd | Out-File $outfile
+        Invoke-Expression -Command $cmd;
+        #[System.IO.FileInfo]$ps =  Join-Path ([System.Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe";
+        #Start-Process $ps -ArgumentList "-NoLogo -File $outfile" | Out-Null;
     }
     catch {
-        newError "Powershell failed to start.";
+        newError "Failed to run command`r`n$($_.Exception.Message)";
     }
 }
 
